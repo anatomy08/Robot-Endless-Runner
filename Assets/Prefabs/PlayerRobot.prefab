@@ -1382,7 +1382,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 573745083409182627}
-  - component: {fileID: 8426435639557672553}
   m_Layer: 0
   m_Name: RobotListener
   m_TagString: Untagged
@@ -1405,14 +1404,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7493646760659765119}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!81 &8426435639557672553
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4164629545193377320}
-  m_Enabled: 1
 --- !u!1 &4199005853134199443
 GameObject:
   m_ObjectHideFlags: 0
@@ -1552,8 +1543,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f9dfa5b682dcd46bda6128250e975f58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   Priority:
     Enabled: 1
     m_Value: 10
@@ -1836,8 +1827,8 @@ GameObject:
   - component: {fileID: 1764945173950795790}
   - component: {fileID: 7477988938871578672}
   - component: {fileID: 3849205041736059348}
-  - component: {fileID: 7888870423227802977}
   - component: {fileID: 1113369256212864554}
+  - component: {fileID: 6625384425088267181}
   m_Layer: 8
   m_Name: Robot
   m_TagString: Player
@@ -1885,6 +1876,32 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &6625384425088267181
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5633379113638269974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b66f64cefe694beeb25b6a2175a5f71c, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  landingAudioClip: {fileID: 8300000, guid: ff697d3070687ce4583faa0561a145a2, type: 3}
+  footstepAudioClips:
+  - {fileID: 8300000, guid: 72f526a6a9890f643a88e85a61c86c8a, type: 3}
+  - {fileID: 8300000, guid: 85016e0f2b01da248b9663dd49a161b0, type: 3}
+  - {fileID: 8300000, guid: 186de84b3207156479abe98f4958fed0, type: 3}
+  - {fileID: 8300000, guid: 1a91fcd19acf1e54bba0945d9f390849, type: 3}
+  - {fileID: 8300000, guid: 14e8a8d2158bec840b56c54f5266e692, type: 3}
+  - {fileID: 8300000, guid: 29841e7d5bbfb5b419c9ad16ca8bc4c1, type: 3}
+  - {fileID: 8300000, guid: dd1af302b8902684d9381de1f2d3a5af, type: 3}
+  - {fileID: 8300000, guid: 67c8b33e424ccdc4486edf538ab91c5a, type: 3}
+  - {fileID: 8300000, guid: 274649b0e221539409070ebf6c18918b, type: 3}
+  - {fileID: 8300000, guid: a3194b8bbc96ef84fab1f98f4b7dae3e, type: 3}
+  footstepVolume: 0.65
+  landingVolume: 0.9
 --- !u!143 &8296376290313619657
 CharacterController:
   m_ObjectHideFlags: 0
@@ -2095,14 +2112,6 @@ CapsuleCollider:
   m_Height: 1.8427298
   m_Direction: 1
   m_Center: {x: 0, y: 0.8953079, z: 0}
---- !u!81 &7888870423227802977
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5633379113638269974}
-  m_Enabled: 1
 --- !u!114 &1113369256212864554
 MonoBehaviour:
   m_ObjectHideFlags: 0

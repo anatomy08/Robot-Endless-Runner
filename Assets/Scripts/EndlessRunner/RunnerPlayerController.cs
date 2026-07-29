@@ -15,9 +15,11 @@ namespace EndlessRunner
         [SerializeField] private float runningAnimationSpeed = 5.5f;
 
         private CharacterController characterController;
+        private RunnerAnimationEventReceiver animationEventReceiver;
         private int targetLane;
         private float verticalVelocity;
         private bool isJumping;
+        private bool wasGrounded;
 
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
         private static readonly int MotionSpeedHash = Animator.StringToHash("MotionSpeed");
@@ -33,6 +35,9 @@ namespace EndlessRunner
             {
                 animator = GetComponentInChildren<Animator>();
             }
+
+            ResolveAnimationEventReceiver();
+            wasGrounded = characterController.isGrounded;
         }
 
         private void Update()
@@ -56,6 +61,15 @@ namespace EndlessRunner
             {
                 animator = runnerAnimator;
             }
+
+            ResolveAnimationEventReceiver();
+        }
+
+        private void ResolveAnimationEventReceiver()
+        {
+            animationEventReceiver = animator != null
+                ? animator.GetComponent<RunnerAnimationEventReceiver>()
+                : GetComponentInChildren<RunnerAnimationEventReceiver>();
         }
 
         private bool ReadLaneInput()
@@ -88,7 +102,9 @@ namespace EndlessRunner
 
         private void MovePlayer()
         {
-            if (characterController.isGrounded && verticalVelocity < 0f)
+            bool groundedBeforeMove = characterController.isGrounded;
+
+            if (groundedBeforeMove && verticalVelocity < 0f)
             {
                 verticalVelocity = -1f;
                 isJumping = false;
@@ -100,6 +116,14 @@ namespace EndlessRunner
             float xDelta = Mathf.MoveTowards(transform.position.x, targetX, laneChangeSpeed * Time.deltaTime) - transform.position.x;
             Vector3 movement = new Vector3(xDelta, verticalVelocity * Time.deltaTime, 0f);
             characterController.Move(movement);
+
+            bool groundedAfterMove = characterController.isGrounded;
+            if (!wasGrounded && groundedAfterMove)
+            {
+                animationEventReceiver?.PlayLanding();
+            }
+
+            wasGrounded = groundedAfterMove;
         }
 
         private void UpdateAnimator(bool jumpPressed)

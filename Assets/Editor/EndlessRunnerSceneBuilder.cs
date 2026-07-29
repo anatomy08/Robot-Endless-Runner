@@ -10,6 +10,8 @@ public static class EndlessRunnerSceneBuilder
     private const string MaterialsFolder = "Assets/Materials/EndlessRunner";
     private const string PlayerRobotPrefabPath = "Assets/Prefabs/PlayerRobot.prefab";
     private const string TrackMaterialPath = "Assets/Materials/Material_GrassFlowers.mat";
+    private const string LandingAudioPath = "Assets/SourceFiles/TimmyRobot/Sfx/Player_Land.wav";
+    private const string FootstepAudioSearchFolder = "Assets/SourceFiles/TimmyRobot/Sfx";
     private static readonly Vector3 RobotVisualLocalPosition = new(0f, -1f, 0f);
 
     [InitializeOnLoadMethod]
@@ -107,7 +109,10 @@ public static class EndlessRunnerSceneBuilder
         visual.transform.localScale = Vector3.one;
 
         StripPrefabGameplayComponents(visual);
-        return visual.GetComponentInChildren<Animator>();
+
+        Animator animator = visual.GetComponentInChildren<Animator>();
+        ConfigureAnimationEvents(animator);
+        return animator;
     }
 
     private static Animator CreateFallbackPlayerVisual(Transform parent, Material material)
@@ -169,6 +174,41 @@ public static class EndlessRunnerSceneBuilder
         }
     }
 
+    private static void ConfigureAnimationEvents(Animator animator)
+    {
+        if (animator == null)
+        {
+            return;
+        }
+
+        RunnerAnimationEventReceiver receiver = animator.GetComponent<RunnerAnimationEventReceiver>();
+        if (receiver == null)
+        {
+            receiver = animator.gameObject.AddComponent<RunnerAnimationEventReceiver>();
+        }
+
+        receiver.Configure(
+            AssetDatabase.LoadAssetAtPath<AudioClip>(LandingAudioPath),
+            LoadFootstepAudioClips(),
+            0.65f,
+            0.9f);
+    }
+
+    private static AudioClip[] LoadFootstepAudioClips()
+    {
+        string[] guids = AssetDatabase.FindAssets("Player_Footstep_ t:AudioClip", new[] { FootstepAudioSearchFolder });
+        System.Array.Sort(guids);
+        AudioClip[] clips = new AudioClip[guids.Length];
+
+        for (int i = 0; i < guids.Length; i++)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+            clips[i] = AssetDatabase.LoadAssetAtPath<AudioClip>(path);
+        }
+
+        return clips;
+    }
+
     private static void CreateTrack(Transform parent, RunnerGameManager gameManager, Material material)
     {
         GameObject trackRoot = new("Track");
@@ -199,6 +239,7 @@ public static class EndlessRunnerSceneBuilder
 
         camera.transform.position = new Vector3(0f, 5f, -8f);
         camera.transform.LookAt(player.position + Vector3.up);
+        EnsureSingleAudioListener(camera);
 
         RunnerCameraFollow follow = camera.GetComponent<RunnerCameraFollow>();
         if (follow == null)
@@ -207,6 +248,24 @@ public static class EndlessRunnerSceneBuilder
         }
 
         follow.Configure(player);
+    }
+
+    private static void EnsureSingleAudioListener(Camera mainCamera)
+    {
+        AudioListener cameraListener = mainCamera.GetComponent<AudioListener>();
+        if (cameraListener == null)
+        {
+            cameraListener = mainCamera.gameObject.AddComponent<AudioListener>();
+        }
+
+        AudioListener[] listeners = Object.FindObjectsByType<AudioListener>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (AudioListener listener in listeners)
+        {
+            if (listener != cameraListener)
+            {
+                Object.DestroyImmediate(listener);
+            }
+        }
     }
 
     private static void ConfigureLighting()
