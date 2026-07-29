@@ -14,9 +14,11 @@ namespace EndlessRunner
 
         public event Action GameOver;
         public event Action Restarted;
+        public event Action<int> StarsChanged;
 
         public float CurrentSpeed { get; private set; }
         public float Score { get; private set; }
+        public int Stars { get; private set; }
         public bool IsGameOver { get; private set; }
 
         private void Awake()
@@ -51,6 +53,17 @@ namespace EndlessRunner
             IsGameOver = true;
             CurrentSpeed = 0f;
             GameOver?.Invoke();
+        }
+
+        public void AddStar(int amount = 1)
+        {
+            if (IsGameOver || amount <= 0)
+            {
+                return;
+            }
+
+            Stars += amount;
+            StarsChanged?.Invoke(Stars);
         }
 
         public void Restart()

@@ -90,7 +90,8 @@ namespace EndlessRunner
             }
 
             if ((keyboard.spaceKey.wasPressedThisFrame || keyboard.wKey.wasPressedThisFrame || keyboard.upArrowKey.wasPressedThisFrame)
-                && characterController.isGrounded)
+                && characterController.isGrounded
+                && !isJumping)
             {
                 verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
                 isJumping = true;
@@ -120,6 +121,7 @@ namespace EndlessRunner
             bool groundedAfterMove = characterController.isGrounded;
             if (!wasGrounded && groundedAfterMove)
             {
+                isJumping = false;
                 animationEventReceiver?.PlayLanding();
             }
 
@@ -139,13 +141,17 @@ namespace EndlessRunner
             animator.SetFloat(SpeedHash, running ? runningAnimationSpeed : 0f);
             animator.SetFloat(MotionSpeedHash, running ? 1f : 0f);
             animator.SetBool(GroundedHash, grounded);
-            animator.SetBool(JumpHash, jumpPressed || isJumping);
+            animator.SetBool(JumpHash, jumpPressed);
             animator.SetBool(FreeFallHash, !grounded && verticalVelocity < 0f);
         }
 
         private void OnTriggerEnter(Collider other)
         {
-            if (other.TryGetComponent(out RunnerObstacle _))
+            if (other.TryGetComponent(out RunnerStarCollectible star))
+            {
+                star.Collect(gameManager);
+            }
+            else if (other.TryGetComponent(out RunnerObstacle _))
             {
                 gameManager.EndRun();
             }

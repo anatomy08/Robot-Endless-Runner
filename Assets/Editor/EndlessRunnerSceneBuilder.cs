@@ -12,6 +12,7 @@ public static class EndlessRunnerSceneBuilder
     private const string TrackMaterialPath = "Assets/Materials/Material_GrassFlowers.mat";
     private const string LandingAudioPath = "Assets/SourceFiles/TimmyRobot/Sfx/Player_Land.wav";
     private const string FootstepAudioSearchFolder = "Assets/SourceFiles/TimmyRobot/Sfx";
+    private const string CollectAudioPath = "Assets/SFX_PositiveSound01.ogg";
     private static readonly Vector3 RobotVisualLocalPosition = new(0f, -1f, 0f);
 
     [InitializeOnLoadMethod]
@@ -38,6 +39,7 @@ public static class EndlessRunnerSceneBuilder
 
         if (GameObject.Find(RootName) != null)
         {
+            UpgradeExistingScene();
             return;
         }
 
@@ -52,13 +54,17 @@ public static class EndlessRunnerSceneBuilder
         Material playerMaterial = GetOrCreateMaterial("Runner_Player.mat", new Color(0.2f, 0.65f, 1f));
         Material trackMaterial = GetTrackMaterial();
         Material obstacleMaterial = GetOrCreateMaterial("Runner_Obstacle.mat", new Color(1f, 0.25f, 0.2f));
+        Material starMaterial = GetOrCreateMaterial("Runner_Star.mat", new Color(1f, 0.82f, 0.12f));
+        Material[] buildingMaterials = GetBuildingMaterials();
 
         GameObject root = new(RootName);
 
         RunnerGameManager gameManager = CreateGameManager(root.transform);
         Transform player = CreatePlayer(root.transform, gameManager, playerMaterial);
         CreateTrack(root.transform, gameManager, trackMaterial);
+        CreateBuildingScenery(root.transform, gameManager, buildingMaterials);
         CreateObstaclePool(root.transform, gameManager, obstacleMaterial);
+        CreateCollectiblePool(root.transform, gameManager, starMaterial);
         ConfigureCamera(player);
         ConfigureLighting();
         CreateHud(root.transform, gameManager);
@@ -218,6 +224,15 @@ public static class EndlessRunnerSceneBuilder
         trackManager.Configure(gameManager, trackRoot.transform, material);
     }
 
+    private static void CreateBuildingScenery(Transform parent, RunnerGameManager gameManager, Material[] materials)
+    {
+        GameObject scenery = new("Building Scenery");
+        scenery.transform.SetParent(parent);
+
+        RunnerBuildingScenery buildingScenery = scenery.AddComponent<RunnerBuildingScenery>();
+        buildingScenery.Configure(gameManager, materials);
+    }
+
     private static void CreateObstaclePool(Transform parent, RunnerGameManager gameManager, Material material)
     {
         GameObject obstaclePool = new("Obstacle Pool");
@@ -225,6 +240,15 @@ public static class EndlessRunnerSceneBuilder
 
         RunnerObstaclePool pool = obstaclePool.AddComponent<RunnerObstaclePool>();
         pool.Configure(gameManager, material);
+    }
+
+    private static void CreateCollectiblePool(Transform parent, RunnerGameManager gameManager, Material material)
+    {
+        GameObject collectiblePool = new("Collectible Pool");
+        collectiblePool.transform.SetParent(parent);
+
+        RunnerCollectiblePool pool = collectiblePool.AddComponent<RunnerCollectiblePool>();
+        pool.Configure(gameManager, material, AssetDatabase.LoadAssetAtPath<AudioClip>(CollectAudioPath));
     }
 
     private static void ConfigureCamera(Transform player)
@@ -258,7 +282,7 @@ public static class EndlessRunnerSceneBuilder
             cameraListener = mainCamera.gameObject.AddComponent<AudioListener>();
         }
 
-        AudioListener[] listeners = Object.FindObjectsByType<AudioListener>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        AudioListener[] listeners = Object.FindObjectsByType<AudioListener>(FindObjectsInactive.Include);
         foreach (AudioListener listener in listeners)
         {
             if (listener != cameraListener)
@@ -292,7 +316,13 @@ public static class EndlessRunnerSceneBuilder
         canvasObject.AddComponent<CanvasScaler>();
         canvasObject.AddComponent<GraphicRaycaster>();
 
-        Text scoreText = CreateText(canvasObject.transform, "Score Text", new Vector2(24f, -24f), TextAnchor.UpperLeft, 28);
+        Text scoreText = CreateText(canvasObject.transform, "Score Text", new Vector2(24f, -24f), TextAnchor.UpperLeft, 30);
+        Text starText = CreateText(canvasObject.transform, "Star Text", new Vector2(-24f, -24f), TextAnchor.UpperRight, 30);
+        RectTransform starRect = starText.rectTransform;
+        starRect.anchorMin = new Vector2(1f, 1f);
+        starRect.anchorMax = new Vector2(1f, 1f);
+        starRect.pivot = new Vector2(1f, 1f);
+
         Text messageText = CreateText(canvasObject.transform, "Game Over Text", Vector2.zero, TextAnchor.MiddleCenter, 40);
         messageText.rectTransform.anchorMin = Vector2.zero;
         messageText.rectTransform.anchorMax = Vector2.one;
@@ -300,7 +330,7 @@ public static class EndlessRunnerSceneBuilder
         messageText.rectTransform.offsetMax = Vector2.zero;
 
         RunnerHud hud = canvasObject.AddComponent<RunnerHud>();
-        hud.Configure(gameManager, scoreText, messageText);
+        hud.Configure(gameManager, scoreText, starText, messageText);
     }
 
     private static Text CreateText(Transform parent, string name, Vector2 anchoredPosition, TextAnchor alignment, int fontSize)
@@ -311,9 +341,14 @@ public static class EndlessRunnerSceneBuilder
         Text text = textObject.AddComponent<Text>();
         text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         text.fontSize = fontSize;
+        text.fontStyle = FontStyle.Bold;
         text.alignment = alignment;
         text.color = Color.white;
         text.raycastTarget = false;
+
+        Shadow shadow = textObject.AddComponent<Shadow>();
+        shadow.effectColor = new Color(0f, 0f, 0f, 0.65f);
+        shadow.effectDistance = new Vector2(2f, -2f);
 
         RectTransform rectTransform = text.rectTransform;
         rectTransform.anchorMin = new Vector2(0f, 1f);
@@ -323,6 +358,100 @@ public static class EndlessRunnerSceneBuilder
         rectTransform.sizeDelta = new Vector2(420f, 120f);
 
         return text;
+    }
+
+    private static void UpgradeExistingScene()
+    {
+        GameObject root = GameObject.Find(RootName);
+        RunnerGameManager gameManager = Object.FindAnyObjectByType<RunnerGameManager>();
+        if (root == null || gameManager == null)
+        {
+            return;
+        }
+
+        EnsureFolder("Assets/Materials");
+        EnsureFolder(MaterialsFolder);
+
+        GameObject collectiblePool = GameObject.Find("Collectible Pool");
+        Material starMaterial = GetOrCreateMaterial("Runner_Star.mat", new Color(1f, 0.82f, 0.12f));
+        if (collectiblePool == null)
+        {
+            CreateCollectiblePool(root.transform, gameManager, starMaterial);
+        }
+        else if (collectiblePool.TryGetComponent(out RunnerCollectiblePool pool))
+        {
+            pool.Configure(gameManager, starMaterial, AssetDatabase.LoadAssetAtPath<AudioClip>(CollectAudioPath));
+        }
+
+        GameObject buildingScenery = GameObject.Find("Building Scenery");
+        Material[] buildingMaterials = GetBuildingMaterials();
+        if (buildingScenery == null)
+        {
+            CreateBuildingScenery(root.transform, gameManager, buildingMaterials);
+        }
+        else if (buildingScenery.TryGetComponent(out RunnerBuildingScenery scenery))
+        {
+            scenery.Configure(gameManager, buildingMaterials);
+        }
+
+        UpgradeHud(gameManager);
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
+    }
+
+    private static void UpgradeHud(RunnerGameManager gameManager)
+    {
+        RunnerHud hud = Object.FindAnyObjectByType<RunnerHud>();
+        if (hud == null)
+        {
+            return;
+        }
+
+        Transform hudTransform = hud.transform;
+        Text scoreText = FindChildText(hudTransform, "Score Text");
+        Text starText = FindChildText(hudTransform, "Star Text");
+        Text messageText = FindChildText(hudTransform, "Game Over Text");
+
+        if (starText == null)
+        {
+            starText = CreateText(hudTransform, "Star Text", new Vector2(-24f, -24f), TextAnchor.UpperRight, 30);
+            RectTransform starRect = starText.rectTransform;
+            starRect.anchorMin = new Vector2(1f, 1f);
+            starRect.anchorMax = new Vector2(1f, 1f);
+            starRect.pivot = new Vector2(1f, 1f);
+        }
+
+        StyleHudText(scoreText, TextAnchor.UpperLeft, 30);
+        StyleHudText(starText, TextAnchor.UpperRight, 30);
+        StyleHudText(messageText, TextAnchor.MiddleCenter, 42);
+        hud.Configure(gameManager, scoreText, starText, messageText);
+    }
+
+    private static Text FindChildText(Transform parent, string childName)
+    {
+        Transform child = parent.Find(childName);
+        return child != null ? child.GetComponent<Text>() : null;
+    }
+
+    private static void StyleHudText(Text text, TextAnchor alignment, int fontSize)
+    {
+        if (text == null)
+        {
+            return;
+        }
+
+        text.fontSize = fontSize;
+        text.fontStyle = FontStyle.Bold;
+        text.alignment = alignment;
+
+        Shadow shadow = text.GetComponent<Shadow>();
+        if (shadow == null)
+        {
+            shadow = text.gameObject.AddComponent<Shadow>();
+        }
+
+        shadow.effectColor = new Color(0f, 0f, 0f, 0.65f);
+        shadow.effectDistance = new Vector2(2f, -2f);
     }
 
     private static Material GetOrCreateMaterial(string fileName, Color color)
@@ -340,6 +469,17 @@ public static class EndlessRunnerSceneBuilder
         material.color = color;
         AssetDatabase.CreateAsset(material, path);
         return material;
+    }
+
+    private static Material[] GetBuildingMaterials()
+    {
+        return new[]
+        {
+            GetOrCreateMaterial("Runner_Building_Cool.mat", new Color(0.35f, 0.43f, 0.5f)),
+            GetOrCreateMaterial("Runner_Building_Glass.mat", new Color(0.18f, 0.48f, 0.62f)),
+            GetOrCreateMaterial("Runner_Building_Warm.mat", new Color(0.58f, 0.5f, 0.4f)),
+            GetOrCreateMaterial("Runner_Building_Dark.mat", new Color(0.22f, 0.24f, 0.27f))
+        };
     }
 
     private static void EnsureFolder(string folderPath)

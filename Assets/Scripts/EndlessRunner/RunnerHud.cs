@@ -7,6 +7,7 @@ namespace EndlessRunner
     {
         [SerializeField] private RunnerGameManager gameManager;
         [SerializeField] private Text scoreText;
+        [SerializeField] private Text starText;
         [SerializeField] private Text messageText;
 
         private void OnEnable()
@@ -15,6 +16,7 @@ namespace EndlessRunner
             {
                 gameManager.GameOver += ShowGameOver;
                 gameManager.Restarted += HideGameOver;
+                gameManager.StarsChanged += UpdateStarText;
             }
         }
 
@@ -24,6 +26,7 @@ namespace EndlessRunner
             {
                 gameManager.GameOver -= ShowGameOver;
                 gameManager.Restarted -= HideGameOver;
+                gameManager.StarsChanged -= UpdateStarText;
             }
         }
 
@@ -37,25 +40,37 @@ namespace EndlessRunner
             scoreText.text = $"Score {Mathf.FloorToInt(gameManager.Score):00000}";
         }
 
-        public void Configure(RunnerGameManager manager, Text score, Text message)
+        public void Configure(RunnerGameManager manager, Text score, Text stars, Text message)
         {
             if (gameManager != null)
             {
                 gameManager.GameOver -= ShowGameOver;
                 gameManager.Restarted -= HideGameOver;
+                gameManager.StarsChanged -= UpdateStarText;
             }
 
             gameManager = manager;
             scoreText = score;
+            starText = stars;
             messageText = message;
 
             if (gameManager != null && isActiveAndEnabled)
             {
                 gameManager.GameOver += ShowGameOver;
                 gameManager.Restarted += HideGameOver;
+                gameManager.StarsChanged += UpdateStarText;
             }
 
+            UpdateStarText(gameManager != null ? gameManager.Stars : 0);
             HideGameOver();
+        }
+
+        private void UpdateStarText(int stars)
+        {
+            if (starText != null)
+            {
+                starText.text = $"Stars {stars:000}";
+            }
         }
 
         private void ShowGameOver()
