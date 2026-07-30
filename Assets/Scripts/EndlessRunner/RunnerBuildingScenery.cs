@@ -7,12 +7,13 @@ namespace EndlessRunner
     {
         [SerializeField] private RunnerGameManager gameManager;
         [SerializeField] private Material[] buildingMaterials;
-        [SerializeField] private int buildingsPerSide = 18;
-        [SerializeField] private float startZ = 8f;
-        [SerializeField] private float spacingZ = 7f;
+        [SerializeField] private Material windowMaterial;
+        [SerializeField] private int buildingsPerSide = 22;
+        [SerializeField] private float startZ = 0f;
+        [SerializeField] private float spacingZ = 12f;
         [SerializeField] private float recycleZ = -16f;
-        [SerializeField] private float sideOffset = 5.6f;
-        [SerializeField] private float sideDepthJitter = 2.4f;
+        [SerializeField] private float sideOffset = 5.2f;
+        [SerializeField] private float sideDepthJitter = 1.4f;
         [SerializeField] private Vector2 heightRange = new(4f, 13f);
         [SerializeField] private Vector2 widthRange = new(1.4f, 3.2f);
         [SerializeField] private Vector2 depthRange = new(1.6f, 4f);
@@ -46,10 +47,18 @@ namespace EndlessRunner
             }
         }
 
-        public void Configure(RunnerGameManager manager, Material[] materials)
+        public void Configure(
+            RunnerGameManager manager,
+            Material[] materials,
+            Material windows = null,
+            float buildingSideOffset = 5.2f,
+            float buildingDepthJitter = 1.4f)
         {
             gameManager = manager;
             buildingMaterials = materials;
+            windowMaterial = windows;
+            sideOffset = buildingSideOffset;
+            sideDepthJitter = buildingDepthJitter;
         }
 
         private void BuildScenery()
@@ -79,6 +88,7 @@ namespace EndlessRunner
                 Destroy(collider);
             }
 
+            CreateWindowStrips(building.transform);
             buildings.Add(building.transform);
             RepositionBuilding(building.transform, z, side);
         }
@@ -102,6 +112,34 @@ namespace EndlessRunner
             if (building.TryGetComponent(out Renderer renderer) && buildingMaterials != null && buildingMaterials.Length > 0)
             {
                 renderer.sharedMaterial = buildingMaterials[Random.Range(0, buildingMaterials.Length)];
+            }
+        }
+
+        private void CreateWindowStrips(Transform building)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                CreateWindowStrip(building, i, 0.51f);
+                CreateWindowStrip(building, i, -0.51f);
+            }
+        }
+
+        private void CreateWindowStrip(Transform building, int index, float z)
+        {
+            GameObject strip = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            strip.name = "Window Strip";
+            strip.transform.SetParent(building, false);
+            strip.transform.localPosition = new Vector3(0f, -0.25f + index * 0.18f, z);
+            strip.transform.localScale = new Vector3(0.72f, 0.035f, 0.025f);
+
+            if (strip.TryGetComponent(out Collider collider))
+            {
+                Destroy(collider);
+            }
+
+            if (strip.TryGetComponent(out Renderer renderer) && windowMaterial != null)
+            {
+                renderer.sharedMaterial = windowMaterial;
             }
         }
     }

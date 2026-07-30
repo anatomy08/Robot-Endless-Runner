@@ -53,16 +53,18 @@ public static class EndlessRunnerSceneBuilder
 
         Material playerMaterial = GetOrCreateMaterial("Runner_Player.mat", new Color(0.2f, 0.65f, 1f));
         Material trackMaterial = GetTrackMaterial();
-        Material obstacleMaterial = GetOrCreateMaterial("Runner_Obstacle.mat", new Color(1f, 0.25f, 0.2f));
+        Material platformMaterial = GetOrCreateMaterial("Runner_Platform.mat", new Color(0.12f, 0.14f, 0.15f));
+        Material obstacleMaterial = GetOrCreateMaterial("Runner_Obstacle.mat", new Color(0.42f, 0.38f, 0.34f));
         Material starMaterial = GetOrCreateMaterial("Runner_Star.mat", new Color(1f, 0.82f, 0.12f));
         Material[] buildingMaterials = GetBuildingMaterials();
+        Material windowMaterial = GetOrCreateMaterial("Runner_Building_Windows.mat", new Color(0.95f, 0.78f, 0.28f));
 
         GameObject root = new(RootName);
 
         RunnerGameManager gameManager = CreateGameManager(root.transform);
         Transform player = CreatePlayer(root.transform, gameManager, playerMaterial);
-        CreateTrack(root.transform, gameManager, trackMaterial);
-        CreateBuildingScenery(root.transform, gameManager, buildingMaterials);
+        CreateTrack(root.transform, gameManager, trackMaterial, platformMaterial);
+        CreateBuildingScenery(root.transform, gameManager, buildingMaterials, windowMaterial);
         CreateObstaclePool(root.transform, gameManager, obstacleMaterial);
         CreateCollectiblePool(root.transform, gameManager, starMaterial);
         ConfigureCamera(player);
@@ -215,22 +217,22 @@ public static class EndlessRunnerSceneBuilder
         return clips;
     }
 
-    private static void CreateTrack(Transform parent, RunnerGameManager gameManager, Material material)
+    private static void CreateTrack(Transform parent, RunnerGameManager gameManager, Material material, Material platformMaterial)
     {
         GameObject trackRoot = new("Track");
         trackRoot.transform.SetParent(parent);
 
         RunnerTrackManager trackManager = trackRoot.AddComponent<RunnerTrackManager>();
-        trackManager.Configure(gameManager, trackRoot.transform, material);
+        trackManager.Configure(gameManager, trackRoot.transform, material, platformMaterial);
     }
 
-    private static void CreateBuildingScenery(Transform parent, RunnerGameManager gameManager, Material[] materials)
+    private static void CreateBuildingScenery(Transform parent, RunnerGameManager gameManager, Material[] materials, Material windowMaterial)
     {
         GameObject scenery = new("Building Scenery");
         scenery.transform.SetParent(parent);
 
         RunnerBuildingScenery buildingScenery = scenery.AddComponent<RunnerBuildingScenery>();
-        buildingScenery.Configure(gameManager, materials);
+        buildingScenery.Configure(gameManager, materials, windowMaterial);
     }
 
     private static void CreateObstaclePool(Transform parent, RunnerGameManager gameManager, Material material)
@@ -372,6 +374,21 @@ public static class EndlessRunnerSceneBuilder
         EnsureFolder("Assets/Materials");
         EnsureFolder(MaterialsFolder);
 
+        Material trackMaterial = GetTrackMaterial();
+        Material platformMaterial = GetOrCreateMaterial("Runner_Platform.mat", new Color(0.12f, 0.14f, 0.15f));
+        RunnerTrackManager trackManager = Object.FindAnyObjectByType<RunnerTrackManager>();
+        if (trackManager != null)
+        {
+            trackManager.Configure(gameManager, trackManager.transform, trackMaterial, platformMaterial);
+        }
+
+        Material obstacleMaterial = GetOrCreateMaterial("Runner_Obstacle.mat", new Color(0.42f, 0.38f, 0.34f));
+        RunnerObstaclePool obstaclePool = Object.FindAnyObjectByType<RunnerObstaclePool>();
+        if (obstaclePool != null)
+        {
+            obstaclePool.Configure(gameManager, obstacleMaterial);
+        }
+
         GameObject collectiblePool = GameObject.Find("Collectible Pool");
         Material starMaterial = GetOrCreateMaterial("Runner_Star.mat", new Color(1f, 0.82f, 0.12f));
         if (collectiblePool == null)
@@ -385,13 +402,14 @@ public static class EndlessRunnerSceneBuilder
 
         GameObject buildingScenery = GameObject.Find("Building Scenery");
         Material[] buildingMaterials = GetBuildingMaterials();
+        Material windowMaterial = GetOrCreateMaterial("Runner_Building_Windows.mat", new Color(0.95f, 0.78f, 0.28f));
         if (buildingScenery == null)
         {
-            CreateBuildingScenery(root.transform, gameManager, buildingMaterials);
+            CreateBuildingScenery(root.transform, gameManager, buildingMaterials, windowMaterial);
         }
         else if (buildingScenery.TryGetComponent(out RunnerBuildingScenery scenery))
         {
-            scenery.Configure(gameManager, buildingMaterials);
+            scenery.Configure(gameManager, buildingMaterials, windowMaterial);
         }
 
         UpgradeHud(gameManager);

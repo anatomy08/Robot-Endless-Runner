@@ -537,12 +537,13 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 40bfeaf9fc1fa174fb114bb6cb9af542, type: 2}
   - {fileID: 2100000, guid: 04c5ea61a15a39549aa461ef14538680, type: 2}
   - {fileID: 2100000, guid: 6dc3bd980fc6f0441ae4cc1b23d4b921, type: 2}
-  buildingsPerSide: 18
-  startZ: 8
-  spacingZ: 7
+  windowMaterial: {fileID: 2100000, guid: 6585db62fbb105a4986edbe51759a20c, type: 2}
+  buildingsPerSide: 22
+  startZ: 0
+  spacingZ: 12
   recycleZ: -16
-  sideOffset: 5.6
-  sideDepthJitter: 2.4
+  sideOffset: 5.2
+  sideDepthJitter: 1.4
   heightRange: {x: 4, y: 13}
   widthRange: {x: 1.4, y: 3.2}
   depthRange: {x: 1.6, y: 4}
@@ -909,6 +910,7 @@ GameObject:
   m_Component:
   - component: {fileID: 942868328}
   - component: {fileID: 942868329}
+  - component: {fileID: 942868330}
   m_Layer: 0
   m_Name: Collectible Pool
   m_TagString: Untagged
@@ -952,10 +954,108 @@ MonoBehaviour:
   despawnZ: -8
   laneDistance: 2
   starHeight: 1.65
-  obstacleLaneTolerance: 0.65
-  obstacleClearanceZ: 7
+  obstacleLaneTolerance: 0.95
+  obstacleClearanceZ: 10
+  obstacleBoundsPadding: 0.85
   spawnIntervalRange: {x: 0.65, y: 1.1}
   rotationSpeed: 180
+--- !u!82 &942868330
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 942868327}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &964954388
 GameObject:
   m_ObjectHideFlags: 0
@@ -1007,6 +1107,9 @@ MonoBehaviour:
   despawnZ: -8
   laneDistance: 2
   spawnIntervalRange: {x: 0.85, y: 1.35}
+  rockScaleRange: {x: 0.9, y: 1.35}
+  collectibleLaneTolerance: 0.95
+  collectibleClearanceZ: 10
 --- !u!1 &1060954889
 GameObject:
   m_ObjectHideFlags: 0
@@ -1359,10 +1462,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EndlessRunner.RunnerTrackManager
   gameManager: {fileID: 697665219}
   segmentParent: {fileID: 1635287431}
-  segmentCount: 8
+  segmentCount: 10
   segmentLength: 12
   segmentWidth: 7
+  platformWidth: 72
   trackMaterial: {fileID: 2100000, guid: caceef3c520df584b8d507610f9c2b87, type: 2}
+  platformMaterial: {fileID: 2100000, guid: 8808dbf1d422c8c47a94bbc4e2d56254, type: 2}
 --- !u!1 &1788350621
 GameObject:
   m_ObjectHideFlags: 0

@@ -14,14 +14,21 @@ namespace EndlessRunner
         [SerializeField] private float despawnZ = -8f;
         [SerializeField] private float laneDistance = 2f;
         [SerializeField] private float starHeight = 1.65f;
-        [SerializeField] private float obstacleLaneTolerance = 0.65f;
-        [SerializeField] private float obstacleClearanceZ = 7f;
+        [SerializeField] private float obstacleLaneTolerance = 0.95f;
+        [SerializeField] private float obstacleClearanceZ = 10f;
+        [SerializeField] private float obstacleBoundsPadding = 0.85f;
         [SerializeField] private Vector2 spawnIntervalRange = new(0.65f, 1.1f);
         [SerializeField] private float rotationSpeed = 180f;
 
         private readonly List<GameObject> collectibles = new();
         private Mesh starMesh;
+        private AudioSource collectAudioSource;
         private float spawnTimer;
+
+        private void Awake()
+        {
+            EnsureCollectAudioSource();
+        }
 
         private void Start()
         {
@@ -69,7 +76,8 @@ namespace EndlessRunner
             AudioClip audioClip = null,
             float audioVolume = 0.8f,
             float spawnHeight = 1.65f,
-            float obstacleZClearance = 7f)
+            float obstacleZClearance = 10f,
+            float obstacleLaneClearance = 0.95f)
         {
             gameManager = manager;
             starMaterial = material;
@@ -77,6 +85,10 @@ namespace EndlessRunner
             collectAudioVolume = Mathf.Clamp01(audioVolume);
             starHeight = spawnHeight;
             obstacleClearanceZ = Mathf.Max(0f, obstacleZClearance);
+            obstacleLaneTolerance = Mathf.Max(0f, obstacleLaneClearance);
+
+            EnsureCollectAudioSource();
+            UpdateCollectibleAudio();
         }
 
         private void BuildPool()
@@ -101,9 +113,32 @@ namespace EndlessRunner
                 collider.radius = 0.55f;
 
                 RunnerStarCollectible star = collectible.AddComponent<RunnerStarCollectible>();
-                star.Configure(collectAudioClip, collectAudioVolume);
+                star.Configure(collectAudioClip, collectAudioVolume, collectAudioSource);
                 collectible.SetActive(false);
                 collectibles.Add(collectible);
+            }
+        }
+
+        private void EnsureCollectAudioSource()
+        {
+            if (collectAudioSource == null && !TryGetComponent(out collectAudioSource))
+            {
+                collectAudioSource = gameObject.AddComponent<AudioSource>();
+            }
+
+            collectAudioSource.playOnAwake = false;
+            collectAudioSource.loop = false;
+            collectAudioSource.spatialBlend = 0f;
+        }
+
+        private void UpdateCollectibleAudio()
+        {
+            for (int i = 0; i < collectibles.Count; i++)
+            {
+                if (collectibles[i].TryGetComponent(out RunnerStarCollectible star))
+                {
+                    star.Configure(collectAudioClip, collectAudioVolume, collectAudioSource);
+                }
             }
         }
 
@@ -145,6 +180,7 @@ namespace EndlessRunner
         private bool IsLaneClear(int lane)
         {
             float laneX = lane * laneDistance;
+            Vector3 candidatePosition = new(laneX, starHeight, spawnZ);
             RunnerObstacle[] obstacles = FindObjectsByType<RunnerObstacle>(FindObjectsInactive.Exclude);
 
             for (int i = 0; i < obstacles.Length; i++)
@@ -158,6 +194,17 @@ namespace EndlessRunner
                 if (Mathf.Abs(obstacleTransform.position.z - spawnZ) < obstacleClearanceZ)
                 {
                     return false;
+                }
+
+                if (obstacles[i].TryGetComponent(out Collider collider))
+                {
+                    Bounds paddedBounds = collider.bounds;
+                    paddedBounds.Expand(obstacleBoundsPadding);
+
+                    if (paddedBounds.Contains(candidatePosition))
+                    {
+                        return false;
+                    }
                 }
             }
 
