@@ -1,12 +1,13 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace EndlessRunner
 {
     [RequireComponent(typeof(CharacterController))]
+    [RequireComponent(typeof(RunnerInputReader))]
     public class RunnerPlayerController : MonoBehaviour
     {
         [SerializeField] private RunnerGameManager gameManager;
+        [SerializeField] private RunnerInputReader inputReader;
         [SerializeField] private float laneDistance = 2f;
         [SerializeField] private float laneChangeSpeed = 14f;
         [SerializeField] private float jumpHeight = 2.25f;
@@ -30,6 +31,7 @@ namespace EndlessRunner
         private void Awake()
         {
             characterController = GetComponent<CharacterController>();
+            inputReader = inputReader != null ? inputReader : GetComponent<RunnerInputReader>();
 
             if (animator == null)
             {
@@ -53,7 +55,10 @@ namespace EndlessRunner
             UpdateAnimator(jumpPressed);
         }
 
-        public void Configure(RunnerGameManager manager, Animator runnerAnimator = null)
+        public void Configure(
+            RunnerGameManager manager,
+            Animator runnerAnimator = null,
+            RunnerInputReader runnerInputReader = null)
         {
             gameManager = manager;
 
@@ -62,6 +67,9 @@ namespace EndlessRunner
                 animator = runnerAnimator;
             }
 
+            inputReader = runnerInputReader != null
+                ? runnerInputReader
+                : GetComponent<RunnerInputReader>();
             ResolveAnimationEventReceiver();
         }
 
@@ -74,22 +82,20 @@ namespace EndlessRunner
 
         private bool ReadLaneInput()
         {
-            Keyboard keyboard = Keyboard.current;
-            if (keyboard == null)
-            {
-                return false;
-            }
+            RunnerInputFrame input = inputReader != null
+                ? inputReader.ReadFrameInput()
+                : default;
 
-            if (keyboard.aKey.wasPressedThisFrame || keyboard.leftArrowKey.wasPressedThisFrame)
+            if (input.LaneChange < 0)
             {
                 targetLane = Mathf.Max(-1, targetLane - 1);
             }
-            else if (keyboard.dKey.wasPressedThisFrame || keyboard.rightArrowKey.wasPressedThisFrame)
+            else if (input.LaneChange > 0)
             {
                 targetLane = Mathf.Min(1, targetLane + 1);
             }
 
-            if ((keyboard.spaceKey.wasPressedThisFrame || keyboard.wKey.wasPressedThisFrame || keyboard.upArrowKey.wasPressedThisFrame)
+            if (input.JumpPressed
                 && characterController.isGrounded
                 && !isJumping)
             {

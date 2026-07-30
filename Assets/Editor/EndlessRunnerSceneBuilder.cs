@@ -19,6 +19,10 @@ public static class EndlessRunnerSceneBuilder
     private const float DefaultSegmentLength = 12f;
     private const float DefaultTrackWidth = 7f;
     private const float DefaultPlatformWidth = 72f;
+    private const float PortraitCameraFieldOfView = 65f;
+    private const float PortraitCameraLookHeight = 1.35f;
+    private static readonly Vector2 PortraitReferenceResolution = new(1080f, 1920f);
+    private static readonly Vector3 PortraitCameraOffset = new(0f, 7f, -12f);
     private static readonly Vector3 RobotVisualLocalPosition = new(0f, -1f, 0f);
 
     [InitializeOnLoadMethod]
@@ -59,6 +63,7 @@ public static class EndlessRunnerSceneBuilder
 
     private static void BuildScene()
     {
+        ConfigurePortraitProjectSettings();
         EnsureFolder("Assets/Materials");
         EnsureFolder(MaterialsFolder);
 
@@ -113,9 +118,10 @@ public static class EndlessRunnerSceneBuilder
         characterController.height = 2f;
         characterController.radius = 0.45f;
 
+        RunnerInputReader inputReader = player.AddComponent<RunnerInputReader>();
         RunnerPlayerController playerController = player.AddComponent<RunnerPlayerController>();
         Animator robotAnimator = CreateRobotVisual(player.transform, material);
-        playerController.Configure(gameManager, robotAnimator);
+        playerController.Configure(gameManager, robotAnimator, inputReader);
 
         return player.transform;
     }
@@ -363,8 +369,9 @@ public static class EndlessRunnerSceneBuilder
             camera = cameraObject.AddComponent<Camera>();
         }
 
-        camera.transform.position = new Vector3(0f, 5f, -8f);
-        camera.transform.LookAt(player.position + Vector3.up);
+        camera.fieldOfView = PortraitCameraFieldOfView;
+        camera.transform.position = player.position + PortraitCameraOffset;
+        camera.transform.LookAt(player.position + Vector3.up * PortraitCameraLookHeight);
         EnsureSingleAudioListener(camera);
 
         RunnerCameraFollow follow = camera.GetComponent<RunnerCameraFollow>();
@@ -373,7 +380,7 @@ public static class EndlessRunnerSceneBuilder
             follow = camera.gameObject.AddComponent<RunnerCameraFollow>();
         }
 
-        follow.Configure(player);
+        follow.Configure(player, PortraitCameraOffset, PortraitCameraLookHeight);
     }
 
     private static void EnsureSingleAudioListener(Camera mainCamera)
@@ -416,9 +423,7 @@ public static class EndlessRunnerSceneBuilder
         Canvas canvas = canvasObject.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         CanvasScaler scaler = canvasObject.AddComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920f, 1080f);
-        scaler.matchWidthOrHeight = 0.5f;
+        ConfigurePortraitCanvas(scaler);
         canvasObject.AddComponent<GraphicRaycaster>();
 
         Text scoreText = CreateText(canvasObject.transform, "Score Text", new Vector2(24f, -24f), TextAnchor.UpperLeft, 30);
@@ -626,6 +631,7 @@ public static class EndlessRunnerSceneBuilder
             return;
         }
 
+        ConfigurePortraitProjectSettings();
         EnsureFolder("Assets/Materials");
         EnsureFolder(MaterialsFolder);
 
@@ -636,6 +642,18 @@ public static class EndlessRunnerSceneBuilder
         RunnerEnvironmentPropPalette environmentPalette = CreateEnvironmentPalette(buildingMaterials, windowMaterial);
         GameObject environmentSegmentPrefab = GetOrCreateEnvironmentSegmentPrefab(trackMaterial, platformMaterial);
         RunnerPlayerController playerController = Object.FindAnyObjectByType<RunnerPlayerController>();
+        if (playerController != null)
+        {
+            RunnerInputReader inputReader = playerController.GetComponent<RunnerInputReader>();
+            if (inputReader == null)
+            {
+                inputReader = playerController.gameObject.AddComponent<RunnerInputReader>();
+            }
+
+            playerController.Configure(gameManager, null, inputReader);
+            ConfigureCamera(playerController.transform);
+        }
+
         RunnerTrackManager trackManager = Object.FindAnyObjectByType<RunnerTrackManager>();
         if (trackManager != null)
         {
@@ -695,6 +713,13 @@ public static class EndlessRunnerSceneBuilder
             return;
         }
 
+        CanvasScaler scaler = hud.GetComponent<CanvasScaler>();
+        if (scaler == null)
+        {
+            scaler = hud.gameObject.AddComponent<CanvasScaler>();
+        }
+
+        ConfigurePortraitCanvas(scaler);
         Transform hudTransform = hud.transform;
         Text scoreText = FindChildText(hudTransform, "Score Text");
         Text starText = FindChildText(hudTransform, "Star Text");
@@ -714,6 +739,28 @@ public static class EndlessRunnerSceneBuilder
         StyleHudText(messageText, TextAnchor.MiddleCenter, 42);
         hud.Configure(gameManager, scoreText, starText, messageText);
         CreateOrUpgradeMenus(hudTransform, gameManager);
+    }
+
+    private static void ConfigurePortraitCanvas(CanvasScaler scaler)
+    {
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = PortraitReferenceResolution;
+        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+        scaler.matchWidthOrHeight = 0.5f;
+    }
+
+    private static void ConfigurePortraitProjectSettings()
+    {
+        PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
+        PlayerSettings.allowedAutorotateToPortrait = true;
+        PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
+        PlayerSettings.allowedAutorotateToLandscapeLeft = false;
+        PlayerSettings.allowedAutorotateToLandscapeRight = false;
+        PlayerSettings.defaultScreenWidth = 1080;
+        PlayerSettings.defaultScreenHeight = 1920;
+        PlayerSettings.defaultWebScreenWidth = 1080;
+        PlayerSettings.defaultWebScreenHeight = 1920;
+        PlayerSettings.WebGL.template = "PROJECT:Portrait";
     }
 
     private static Text FindChildText(Transform parent, string childName)
