@@ -487,66 +487,6 @@ MonoBehaviour:
   target: {fileID: 1271822797}
   offset: {x: 0, y: 5, z: -8}
   followSpeed: 8
---- !u!1 &356668487
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 356668488}
-  - component: {fileID: 356668489}
-  m_Layer: 0
-  m_Name: Building Scenery
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &356668488
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 356668487}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1134566874}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &356668489
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 356668487}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9dd255f92f404aa39a821fd0dc4a8e64, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EndlessRunner.RunnerBuildingScenery
-  gameManager: {fileID: 697665219}
-  buildingMaterials:
-  - {fileID: 2100000, guid: eb136e880eb92a44a9bd01a070486f98, type: 2}
-  - {fileID: 2100000, guid: 40bfeaf9fc1fa174fb114bb6cb9af542, type: 2}
-  - {fileID: 2100000, guid: 04c5ea61a15a39549aa461ef14538680, type: 2}
-  - {fileID: 2100000, guid: 6dc3bd980fc6f0441ae4cc1b23d4b921, type: 2}
-  windowMaterial: {fileID: 2100000, guid: 6585db62fbb105a4986edbe51759a20c, type: 2}
-  buildingsPerSide: 22
-  startZ: 0
-  spacingZ: 12
-  recycleZ: -16
-  sideOffset: 5.2
-  sideDepthJitter: 1.4
-  heightRange: {x: 4, y: 13}
-  widthRange: {x: 1.4, y: 3.2}
-  depthRange: {x: 1.6, y: 4}
 --- !u!1 &378914765
 GameObject:
   m_ObjectHideFlags: 0
@@ -1654,7 +1594,6 @@ Transform:
   - {fileID: 964954389}
   - {fileID: 1788350622}
   - {fileID: 942868328}
-  - {fileID: 356668488}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1190077581
@@ -2325,6 +2264,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1635287431}
   - component: {fileID: 1635287432}
+  - component: {fileID: 1635287433}
   m_Layer: 0
   m_Name: Track
   m_TagString: Untagged
@@ -2364,6 +2304,7 @@ MonoBehaviour:
   segmentParent: {fileID: 1635287431}
   environmentSegmentPrefabs:
   - {fileID: 2961572354508914773, guid: aae6c89d9a905884c8522014dbd82a17, type: 3}
+  environmentDecorator: {fileID: 1635287433}
   initialSegmentCount: 10
   spawnAheadDistance: 500
   recycleBehindDistance: 24
@@ -2372,6 +2313,80 @@ MonoBehaviour:
   platformWidth: 72
   trackMaterial: {fileID: 2100000, guid: caceef3c520df584b8d507610f9c2b87, type: 2}
   platformMaterial: {fileID: 2100000, guid: 8808dbf1d422c8c47a94bbc4e2d56254, type: 2}
+--- !u!114 &1635287433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635287430}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: caf7fc7f900149241abd8ec8d1475eba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EndlessRunner.RunnerEnvironmentDecorator
+  buildingPrefabs: []
+  treePrefabs: []
+  parkedCarPrefabs: []
+  streetlightPrefabs: []
+  trafficLightPrefabs: []
+  billboardPrefabs: []
+  benchPrefabs: []
+  trashBinPrefabs: []
+  roadSignPrefabs: []
+  miscellaneousPropPrefabs: []
+  spawnWeights:
+  - category: 0
+    weight: 45
+  - category: 1
+    weight: 15
+  - category: 2
+    weight: 10
+  - category: 3
+    weight: 10
+  - category: 5
+    weight: 5
+  - category: 4
+    weight: 5
+  - category: 6
+    weight: 3
+  - category: 7
+    weight: 3
+  - category: 8
+    weight: 2
+  - category: 9
+    weight: 2
+  maximumConsecutiveCategory: 3
+  leftSideOffset: 6.5
+  rightSideOffset: 6.5
+  spawnPointDistance: 6
+  minimumSpacing: 4
+  maximumSpacing: 8
+  positionVariation: {x: 0.75, y: 0.8}
+  rotationVariation: 8
+  scaleVariation: {x: 0.9, y: 1.1}
+  groundHeightOffset: -0.08
+  maximumPropsPerSegment: 4
+  spawnChancePerPoint: 0.82
+  trackClearance: 3.8
+  overlapPadding: 0.35
+  placementAttempts: 4
+  useProceduralFallbacks: 1
+  proceduralPalette:
+    buildingMaterials:
+    - {fileID: 2100000, guid: eb136e880eb92a44a9bd01a070486f98, type: 2}
+    - {fileID: 2100000, guid: 40bfeaf9fc1fa174fb114bb6cb9af542, type: 2}
+    - {fileID: 2100000, guid: 04c5ea61a15a39549aa461ef14538680, type: 2}
+    - {fileID: 2100000, guid: 6dc3bd980fc6f0441ae4cc1b23d4b921, type: 2}
+    windowMaterial: {fileID: 2100000, guid: 6585db62fbb105a4986edbe51759a20c, type: 2}
+    foliageMaterial: {fileID: 2100000, guid: 0a4fbcc7856429c4eafa2e2e60a3178d, type: 2}
+    trunkMaterial: {fileID: 2100000, guid: 418d93768e8e65a43b574718edc18cf1, type: 2}
+    vehicleMaterial: {fileID: 2100000, guid: 4d39643c000280b44a4358b984a44d28, type: 2}
+    metalMaterial: {fileID: 2100000, guid: 60b99f47a00a09048bd43c530d33d6b3, type: 2}
+    furnitureMaterial: {fileID: 2100000, guid: 20231b607bc846b42b90ae57cea74100, type: 2}
+    redMaterial: {fileID: 2100000, guid: 462574a3e9662804684f265adcf7f052, type: 2}
+    yellowMaterial: {fileID: 2100000, guid: 4202f1e5ebd2a3f48842a283623b925c, type: 2}
+    greenMaterial: {fileID: 2100000, guid: 5b08055829e22dc4389cc95105a6c669, type: 2}
 --- !u!1 &1739668752
 GameObject:
   m_ObjectHideFlags: 0

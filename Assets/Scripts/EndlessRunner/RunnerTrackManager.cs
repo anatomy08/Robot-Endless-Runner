@@ -10,6 +10,7 @@ namespace EndlessRunner
         [SerializeField] private Transform playerTransform;
         [SerializeField] private Transform segmentParent;
         [SerializeField] private GameObject[] environmentSegmentPrefabs;
+        [SerializeField] private RunnerEnvironmentDecorator environmentDecorator;
         [FormerlySerializedAs("segmentCount")]
         [SerializeField, Min(2)] private int initialSegmentCount = 16;
         [SerializeField, Min(1f)] private float spawnAheadDistance = 160f;
@@ -25,6 +26,11 @@ namespace EndlessRunner
 
         private void Start()
         {
+            if (environmentDecorator == null)
+            {
+                environmentDecorator = GetComponent<RunnerEnvironmentDecorator>();
+            }
+
             BuildInitialSegments();
         }
 
@@ -51,7 +57,8 @@ namespace EndlessRunner
             Material groundMaterial = null,
             float groundWidth = 72f,
             Transform player = null,
-            GameObject[] segmentPrefabs = null)
+            GameObject[] segmentPrefabs = null,
+            RunnerEnvironmentDecorator decorator = null)
         {
             gameManager = manager;
             segmentParent = parent;
@@ -67,6 +74,11 @@ namespace EndlessRunner
             if (!HasValidSegmentPrefab() && segmentPrefabs != null && segmentPrefabs.Length > 0)
             {
                 environmentSegmentPrefabs = segmentPrefabs;
+            }
+
+            if (decorator != null)
+            {
+                environmentDecorator = decorator;
             }
         }
 
@@ -91,6 +103,7 @@ namespace EndlessRunner
             {
                 EnvironmentSegment segment = CreateEnvironmentSegment(activeSegments.Count);
                 MoveSegmentToStart(segment, nextStartZ);
+                environmentDecorator?.PopulateSegment(segment.Root, segment.LocalStartZ, segment.Length);
                 activeSegments.Enqueue(segment);
                 nextStartZ += segment.Length;
                 safetyCount++;
@@ -356,6 +369,7 @@ namespace EndlessRunner
                 EnvironmentSegment oldest = activeSegments.Dequeue();
                 float nextStartZ = GetFurthestEndZ();
                 MoveSegmentToStart(oldest, nextStartZ);
+                environmentDecorator?.RefreshSegment(oldest.Root, oldest.LocalStartZ, oldest.Length);
                 activeSegments.Enqueue(oldest);
             }
         }

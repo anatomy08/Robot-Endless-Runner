@@ -69,14 +69,21 @@ public static class EndlessRunnerSceneBuilder
         Material starMaterial = GetOrCreateMaterial("Runner_Star.mat", new Color(1f, 0.82f, 0.12f));
         Material[] buildingMaterials = GetBuildingMaterials();
         Material windowMaterial = GetOrCreateMaterial("Runner_Building_Windows.mat", new Color(0.95f, 0.78f, 0.28f));
+        RunnerEnvironmentPropPalette environmentPalette = CreateEnvironmentPalette(buildingMaterials, windowMaterial);
 
         GameObject root = new(RootName);
 
         RunnerGameManager gameManager = CreateGameManager(root.transform);
         Transform player = CreatePlayer(root.transform, gameManager, playerMaterial);
         GameObject environmentSegmentPrefab = GetOrCreateEnvironmentSegmentPrefab(trackMaterial, platformMaterial);
-        CreateTrack(root.transform, gameManager, player, trackMaterial, platformMaterial, environmentSegmentPrefab);
-        CreateBuildingScenery(root.transform, gameManager, buildingMaterials, windowMaterial);
+        CreateTrack(
+            root.transform,
+            gameManager,
+            player,
+            trackMaterial,
+            platformMaterial,
+            environmentSegmentPrefab,
+            environmentPalette);
         CreateObstaclePool(root.transform, gameManager, obstacleMaterial);
         CreateCollectiblePool(root.transform, gameManager, starMaterial);
         ConfigureCamera(player);
@@ -307,10 +314,14 @@ public static class EndlessRunnerSceneBuilder
         Transform player,
         Material material,
         Material platformMaterial,
-        GameObject environmentSegmentPrefab)
+        GameObject environmentSegmentPrefab,
+        RunnerEnvironmentPropPalette environmentPalette)
     {
         GameObject trackRoot = new("Track");
         trackRoot.transform.SetParent(parent);
+
+        RunnerEnvironmentDecorator decorator = trackRoot.AddComponent<RunnerEnvironmentDecorator>();
+        decorator.Configure(environmentPalette);
 
         RunnerTrackManager trackManager = trackRoot.AddComponent<RunnerTrackManager>();
         trackManager.Configure(
@@ -320,16 +331,8 @@ public static class EndlessRunnerSceneBuilder
             platformMaterial,
             DefaultPlatformWidth,
             player,
-            new[] { environmentSegmentPrefab });
-    }
-
-    private static void CreateBuildingScenery(Transform parent, RunnerGameManager gameManager, Material[] materials, Material windowMaterial)
-    {
-        GameObject scenery = new("Building Scenery");
-        scenery.transform.SetParent(parent);
-
-        RunnerBuildingScenery buildingScenery = scenery.AddComponent<RunnerBuildingScenery>();
-        buildingScenery.Configure(gameManager, materials, windowMaterial);
+            new[] { environmentSegmentPrefab },
+            decorator);
     }
 
     private static void CreateObstaclePool(Transform parent, RunnerGameManager gameManager, Material material)
@@ -628,11 +631,21 @@ public static class EndlessRunnerSceneBuilder
 
         Material trackMaterial = GetTrackMaterial();
         Material platformMaterial = GetOrCreateMaterial("Runner_Platform.mat", new Color(0.12f, 0.14f, 0.15f));
+        Material[] buildingMaterials = GetBuildingMaterials();
+        Material windowMaterial = GetOrCreateMaterial("Runner_Building_Windows.mat", new Color(0.95f, 0.78f, 0.28f));
+        RunnerEnvironmentPropPalette environmentPalette = CreateEnvironmentPalette(buildingMaterials, windowMaterial);
         GameObject environmentSegmentPrefab = GetOrCreateEnvironmentSegmentPrefab(trackMaterial, platformMaterial);
         RunnerPlayerController playerController = Object.FindAnyObjectByType<RunnerPlayerController>();
         RunnerTrackManager trackManager = Object.FindAnyObjectByType<RunnerTrackManager>();
         if (trackManager != null)
         {
+            RunnerEnvironmentDecorator decorator = trackManager.GetComponent<RunnerEnvironmentDecorator>();
+            if (decorator == null)
+            {
+                decorator = trackManager.gameObject.AddComponent<RunnerEnvironmentDecorator>();
+            }
+
+            decorator.Configure(environmentPalette);
             trackManager.Configure(
                 gameManager,
                 trackManager.transform,
@@ -640,7 +653,8 @@ public static class EndlessRunnerSceneBuilder
                 platformMaterial,
                 DefaultPlatformWidth,
                 playerController != null ? playerController.transform : null,
-                new[] { environmentSegmentPrefab });
+                new[] { environmentSegmentPrefab },
+                decorator);
         }
 
         Material obstacleMaterial = GetOrCreateMaterial("Runner_Obstacle.mat", new Color(0.42f, 0.38f, 0.34f));
@@ -662,15 +676,9 @@ public static class EndlessRunnerSceneBuilder
         }
 
         GameObject buildingScenery = GameObject.Find("Building Scenery");
-        Material[] buildingMaterials = GetBuildingMaterials();
-        Material windowMaterial = GetOrCreateMaterial("Runner_Building_Windows.mat", new Color(0.95f, 0.78f, 0.28f));
-        if (buildingScenery == null)
+        if (buildingScenery != null)
         {
-            CreateBuildingScenery(root.transform, gameManager, buildingMaterials, windowMaterial);
-        }
-        else if (buildingScenery.TryGetComponent(out RunnerBuildingScenery scenery))
-        {
-            scenery.Configure(gameManager, buildingMaterials, windowMaterial);
+            Object.DestroyImmediate(buildingScenery);
         }
 
         UpgradeHud(gameManager);
@@ -761,6 +769,25 @@ public static class EndlessRunnerSceneBuilder
             GetOrCreateMaterial("Runner_Building_Warm.mat", new Color(0.58f, 0.5f, 0.4f)),
             GetOrCreateMaterial("Runner_Building_Dark.mat", new Color(0.22f, 0.24f, 0.27f))
         };
+    }
+
+    private static RunnerEnvironmentPropPalette CreateEnvironmentPalette(
+        Material[] buildingMaterials,
+        Material windowMaterial)
+    {
+        RunnerEnvironmentPropPalette palette = new();
+        palette.Configure(
+            buildingMaterials,
+            windowMaterial,
+            GetOrCreateMaterial("Runner_Prop_Foliage.mat", new Color(0.2f, 0.68f, 0.32f)),
+            GetOrCreateMaterial("Runner_Prop_Trunk.mat", new Color(0.38f, 0.23f, 0.14f)),
+            GetOrCreateMaterial("Runner_Prop_Vehicle.mat", new Color(0.9f, 0.24f, 0.2f)),
+            GetOrCreateMaterial("Runner_Prop_Metal.mat", new Color(0.16f, 0.19f, 0.22f)),
+            GetOrCreateMaterial("Runner_Prop_Furniture.mat", new Color(0.1f, 0.55f, 0.58f)),
+            GetOrCreateMaterial("Runner_Prop_Red.mat", new Color(0.9f, 0.1f, 0.12f)),
+            GetOrCreateMaterial("Runner_Prop_Yellow.mat", new Color(1f, 0.72f, 0.08f)),
+            GetOrCreateMaterial("Runner_Prop_Green.mat", new Color(0.14f, 0.78f, 0.36f)));
+        return palette;
     }
 
     private static void EnsureFolder(string folderPath)
