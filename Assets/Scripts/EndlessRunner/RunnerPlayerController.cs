@@ -42,7 +42,7 @@ namespace EndlessRunner
 
         private void Update()
         {
-            if (gameManager == null || gameManager.IsGameOver)
+            if (gameManager == null || !gameManager.IsRunActive)
             {
                 UpdateAnimator(false);
                 return;
@@ -135,7 +135,7 @@ namespace EndlessRunner
                 return;
             }
 
-            bool running = gameManager != null && !gameManager.IsGameOver;
+            bool running = gameManager != null && gameManager.IsRunActive;
             bool grounded = characterController != null && characterController.isGrounded;
 
             animator.SetFloat(SpeedHash, running ? runningAnimationSpeed : 0f);

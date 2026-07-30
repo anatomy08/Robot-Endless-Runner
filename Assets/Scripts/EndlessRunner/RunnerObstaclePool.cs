@@ -29,7 +29,7 @@ namespace EndlessRunner
 
         private void Update()
         {
-            if (gameManager == null || gameManager.IsGameOver)
+            if (gameManager == null || !gameManager.IsRunActive)
             {
                 return;
             }
